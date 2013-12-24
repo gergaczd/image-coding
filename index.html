@@ -5,21 +5,136 @@
 
 		<script type="text/javascript" src="noisy-image-generator.js"></script>
 		<style>
+			* {margin: 5;}
+			body {
+				font-family: sans-serif;
+			}
+
 			canvas {
 				border: 1px solid #333;
-				cursor: pointer;
 			}
+
+			#draw-canvas {
+				cursor: pointer;
+				clear: both;
+			}
+
+			.container-box {
+				border-radius: 3px;
+				border: 1px solid #333;
+				float: left;
+				margin: 0px 20px 20px 5px;
+				width: 400px;
+				padding: 5px 15px;
+				box-shadow: 1px 1px 2px #aaa;
+				height: 625px;
+				overflow-y: auto;
+				overflow-x: hidden;
+			}
+
+/*scrollbar design */
+.container-box::-webkit-scrollbar {
+    width: 8px;
+}
+ 
+.container-box::-webkit-scrollbar-track {
+	border-left: 1px solid #CCC;
+    border-radius: 5px;
+
+}
+ 
+.container-box::-webkit-scrollbar-thumb {
+    background: rgba(180,180,180,0.8); 
+    border-radius: 5px;
+}
+
+.container-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(180,180,180,1); 
+}
+
+.container-box::-webkit-scrollbar-thumb:window-inactive {
+	background: rgba(180,180,180,0.4); 
+}			
+
+			#input-box legend, #generated-box legend {
+				font-size: 18px;
+			}
+
+			#draw-canvas {
+				float: left;
+				clear: both;
+			}
+
+			#input-control {
+				clear: both;
+				width: 96%;
+				padding: 10px 2%;
+			}
+
+			#input-control label.clear-line {
+				clear: both;
+				display: block;
+			}
+
+			.input-option {
+				clear: both;
+				display: block;
+				margin: 10px 0;
+			}
+			button {
+				padding: 5px;
+				background: #666;
+				color: #FFF;
+				border: 1px solid #333;
+				border-radius: 3px;
+			}
+
+			button:hover {
+				box-shadow: 1px 1px 2px #333;
+				background: #999;
+			}			
 		</style>
 	</head>
 	<body>
-		<canvas id="draw-canvas" width="400" height="300"></canvas>
-		<canvas id="noisy-canvas" width="400" height="300"></canvas>
-		<canvas id="key-canvas" width="400" height="300"></canvas>
+		<div id="input-box" class="container-box">
+			<legend>Input</legend>
+			<canvas id="draw-canvas" width="400" height="300"></canvas>
 
-		<button id="noiser-btn">Create noisy images</button>
-		<button id="clear-input-btn">Clear input canvas</button>
-		<button id="based-key-btn">Generate with existing key</button>
-		<button id="based2-key-btn">Generate2 with existing key</button>
+			<div id="input-control">
+				<div class="input-option">
+					<label for="input-text-box" class="clear-line">Input text:</label>
+					<textarea name="" id="input-text-box" cols="45" rows="3"></textarea>
+				</div>
+				<div class="input-option">
+					<label for="input-image-box">Input image:</label>
+					<input class="file-button" type="file" id="input-image-box">
+				</div>
+
+				<div class="input-option">
+					<label for="noisy-pixel-size">Noisy pixel size:</label>
+					<input type="text" id="noisy-pixel-size">
+				</div>
+
+				<div class="input-option">
+					<label for="load-key-box">Load existing key:</label>
+					<input class="file-button" type="file" id="load-key-box">
+				</div>
+
+				<button id="noiser-btn">Create noisy images</button>
+				<button id="clear-input-btn">Clear input canvas</button>
+				<button id="based-key-btn">Generate with existing key</button>
+				<button id="based2-key-btn">Generate2 with existing key</button>
+			</div>
+		</div>
+
+
+		<div id="generated-box" class="container-box">
+		<legend>Key picture</legend>
+		<canvas id="key-canvas" width="400" height="300"></canvas>
+		<legend>Noisy picture</legend>
+		<canvas id="noisy-canvas" width="400" height="300"></canvas>
+		</div>
+
 		<br>
 		<canvas id="solved-canvas" width="400" height="300"></canvas>
 		<canvas id="solved2-canvas" width="400" height="300"></canvas>
