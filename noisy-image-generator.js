@@ -257,27 +257,4 @@ window.onload = function() {
 	generateBtn2.addEventListener("click", function(){
 		processor.makeNoisyBasedOnKey("draw-canvas", "noisy-canvas", "key-canvas", "solved-canvas");
 	}, false);
-
-
-	var ccanvas = document.getElementById("colored-canvas");
-	var context = ccanvas.getContext("2d");
-	var width = ccanvas.width;
-	var height = ccanvas.height;
-
-	for (var i = 0; i < width; i++) {
-		for (var j = 0; j < height; j++) {
-			var red = Math.floor(Math.random()*128);
-			var green = Math.floor(Math.random()*128)+127;
-			var blue = Math.floor(Math.random()*255);
-			var alpha = Math.floor(Math.random()*255);
-
-			context.fillStyle = "rgba(" + red + ", " + green + ", " + blue + ", " + alpha + ")";
-			context.fillRect(i,j,1,1);
-
-		}
-	}
-
-	var myColorHash = ccanvas.toDataURL();
-	window.open(myColorHash);	
-
 };
