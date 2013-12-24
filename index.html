@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<script type="text/javascript" src="noisy-image-generator.js"></script>
+		<style>
+			canvas {
+				border: 1px solid #333;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="draw-canvas" width="400" height="300"></canvas>
+		<canvas id="noisy-canvas" width="400" height="300"></canvas>
+		<canvas id="key-canvas" width="400" height="300"></canvas>
+
+		<button id="noiser-btn">Create noisy images</button>
+		<button id="clear-input-btn">Clear input canvas</button>
+		<button id="based-key-btn">Generate with existing key</button>
+		<button id="based2-key-btn">Generate2 with existing key</button>
+		<br>
+		<canvas id="solved-canvas" width="400" height="300"></canvas>
+		<canvas id="solved2-canvas" width="400" height="300"></canvas>
+		<canvas id="colored-canvas" width="400" height="300"></canvas>
+	</body>
+</html>
