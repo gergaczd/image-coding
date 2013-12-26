@@ -120,6 +120,10 @@ function elementPosition(element) {
 		this.keyContext = undefined;
 		this.solutionCanvas = undefined;
 		this.solutionCanvas2 = undefined;
+
+		this._pixelSize = 1;
+
+		this.isProcess = false;
 	};
 
 	var p = SA.ImageEncoding.prototype;
@@ -131,9 +135,12 @@ function elementPosition(element) {
 		this.noisyContext = document.getElementById(noisy).getContext("2d");
 		this.keyContext = document.getElementById(key).getContext("2d");
 		this.solutionCanvas = document.getElementById(solution).getContext("2d");
+
+		this._pixelSize = SA.PIXEL_SIZE || 1;
 	};
 
 	p.process = function() {
+		this.isProcess = true;
 		var start = (new Date()).getTime();
 		console.log(start);
 		var width = this.inputCanvas.width,
@@ -145,34 +152,71 @@ function elementPosition(element) {
 
 		var pixelData = this.inputContext.getImageData(0,0,width,height).data;
 	
-		for (var i = 0, length = pixelData.length; i < length; i+=4) {
-			var random = Math.floor(Math.random()*100) % 2,
-				pixNum = i/4;
+		if(width%this._pixelSize !== 0 && height%this._pixelSize !== 0) {
+			throw new Error("The given pixel size is incorrect");
+		}
 
-			var x = pixNum % width,
-				y = Math.floor(pixNum / width);
+		if(width * height * 4 !== pixelData.length) {
+			throw new Error("Incorrect size!");
+		}
 
-			if(pixelData[i+3] === 255 && pixelData[i] === 0 && pixelData[i+1] === 0 && pixelData[i+2] === 0) {
-				if(random === 0) {
-					this.noisyContext.fillRect(x,y,1,1);
+		var lengthX = width/this._pixelSize,
+			lengthY = height/this._pixelSize,
+			length = pixelData.length,
+			row = width*4;
+
+
+		var mtx = [];
+		for (var y = 0; y < lengthY; y++) {
+			mtx[y] = [];
+			for (var x = 0; x < lengthX; x++) {
+				var startPos = y*row + this._pixelSize * x * 4,
+					black = 0,
+					white = 0,
+					currPos;
+
+				for (var i = 0; i < this._pixelSize; i++) {
+					currPos = startPos + i*row; //something is wrong...
+					for (var j = 0; j < this._pixelSize; j++) {
+						if(pixelData[currPos+3] === 255 && pixelData[currPos] === 0 && pixelData[currPos+1] === 0 && pixelData[currPos+2] === 0) {
+							black++;
+						} else {
+							white++;
+						}
+						currPos += 4;
+					}
+				}
+
+				var random = Math.floor(Math.random()*100) % 2;
+
+				if(black > white) {
+					mtx[y][x] = 1;
+					if(random === 0) {
+						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+					} else {
+						this.keyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+					}
 				} else {
-					this.keyContext.fillRect(x,y,1,1);
-				}
-			} else {
-				if(random === 0) {
-					this.noisyContext.fillRect(x,y,1,1);
-					this.keyContext.fillRect(x,y,1,1);
-				}
+					mtx[y][x] = 0;
+					if(random === 0) {
+						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+						this.keyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+					}
+				}				
+
 			}
 		}
+		console.log(mtx)
 
 		var end = (new Date()).getTime();
 		
 		console.log(end);
 		console.log("Diff: " + (end-start));
+		this.isProcess = false;
 	};
 
 	p.makeNoisyBasedOnKey = function(canvas, noisy, key, output) {
+
 		this.inputContext = document.getElementById(canvas).getContext("2d");
 		this.solutionCanvas2 = document.getElementById(output).getContext("2d");
 		this.noisyContext = document.getElementById(noisy).getContext("2d");
@@ -285,14 +329,17 @@ window.onload = function() {
 	drawer.init("draw-canvas");
 
 	var encodeBtn = document.getElementById("noiser-btn"),
+		pxSizeInput = document.getElementById("noisy-pixel-size"),
 		clearBtn = document.getElementById("clear-input-btn"),
 		generateBtn = document.getElementById("based-key-btn"),
 		switchLeft = document.getElementById("switch-left"),
 		switchRight = document.getElementById("switch-right"),
-		decodeBtn = document.getElementById("decode-button");
+		decodeBtn = document.getElementById("decode-button"),
+		showGridBtn = document.getElementById("show-grid-btn");
 
 
 	encodeBtn.addEventListener("click", function() {
+		SA.PIXEL_SIZE = parseInt(pxSizeInput.value);
 		encoding.set("draw-canvas", "noisy-canvas", "key-canvas", "solved-canvas");
 		encoding.process();
 	}, false);
@@ -333,5 +380,45 @@ window.onload = function() {
 	decodeBtn.addEventListener("click", function() {
 		decoding.set("solved-canvas", "key-canvas", "noisy-canvas");
 		decoding.process();
+	}, false);
+
+	var showGrid = false;
+	showGridBtn.addEventListener("click", function () {
+		var gridCanvas = document.getElementById("grid-canvas");
+
+		if(showGrid) {
+			showGrid = false;
+			gridCanvas.style.display = "none";
+		} else {
+			showGrid = true;
+			gridCanvas.style.display = "block";
+
+			var gridContext = gridCanvas.getContext("2d");
+
+			var width = parseInt(gridCanvas.width),
+				height = parseInt(gridCanvas.height);
+
+			gridContext.clearRect(0,0,width,height);
+
+			gridContext.lineWidth = 1;
+			SA.PIXEL_SIZE = SA.PIXEL_SIZE || 1;
+			for (var i = 0; i < width; i += SA.PIXEL_SIZE) {
+				gridContext.beginPath();
+				gridContext.moveTo(i, 0);
+				gridContext.lineTo(i, height);
+				gridContext.strokeStyle = "#F00";
+				gridContext.stroke();
+				gridContext.closePath();
+			}
+
+			for (var j = 0; j < height; j += SA.PIXEL_SIZE) {
+				gridContext.beginPath();
+				gridContext.moveTo(0, j);
+				gridContext.lineTo(width, j);
+				gridContext.strokeStyle = "#F00";
+				gridContext.stroke();
+				gridContext.closePath();
+			}		
+		}
 	}, false);
 };

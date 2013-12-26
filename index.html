@@ -138,7 +138,7 @@
 				box-shadow: 0px 0px 8px #999;
 			}
 
-			#generated-box legend {
+			#generated-box legend, #input-box legend {
 				float: left;
 				width: 200px;
 				margin-right: 50px;
@@ -152,6 +152,7 @@
 				margin: 0px;
 				background: #ddd;
 				color: #333;
+				border-radius: 0;
 			}
 
 			.switcher.active {
@@ -159,12 +160,19 @@
 				color: #fff;
 			}
 
-			#switch-left {
+			#switch-left, #draw-input {
 				border-radius: 5px 0px 0px 5px;
 			}
 
-			#switch-right {
+			#switch-right, #image-input {
 				border-radius: 0px 5px 5px 0px;
+			}
+
+			#grid-canvas {
+				position: absolute;
+				top: 36px;
+				left: 29px;
+				display: none;
 			}
 			
 
@@ -173,7 +181,12 @@
 	<body>
 		<div id="input-box" class="container-box">
 			<legend>Input</legend>
+			<button id="draw-input" class="switcher">Draw</button>
+			<button id="text-input" class="switcher">Text</button>
+			<button id="image-input" class="switcher">Image</button>
+
 			<canvas id="draw-canvas" width="400" height="300"></canvas>
+			<canvas id="grid-canvas" width="400" height="300"></canvas>
 
 			<div id="input-control">
 				<div class="input-option">
@@ -199,6 +212,7 @@
 				<button id="noiser-btn">Encode image</button>
 				<button id="clear-input-btn">Clear input canvas</button>
 				<button id="based-key-btn">Encode with existing key</button>
+				<button id="show-grid-btn">Switch grid</button>
 			</div>
 		</div>
 
