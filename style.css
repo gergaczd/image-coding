@@ -1,0 +1,195 @@
+body {
+	font-family: sans-serif;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none; 				
+}
+
+canvas {
+	border: 1px solid #333;
+	position: relative;
+}
+
+#draw-canvas {
+	cursor: pointer;
+	clear: both;
+}
+
+.container-box {
+	border-radius: 3px;
+	border: 1px solid #333;
+	float: left;
+	margin: 0px 5px 20px 5px;
+	width: 400px;
+	padding: 5px 15px;
+	box-shadow: 1px 1px 2px #aaa;
+	height: 625px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+/*scrollbar design */
+.container-box::-webkit-scrollbar {
+    width: 8px;
+}
+ 
+.container-box::-webkit-scrollbar-track {
+	border-left: 1px solid #CCC;
+    border-radius: 5px;
+
+}
+ 
+.container-box::-webkit-scrollbar-thumb {
+    background: rgba(180,180,180,0.8); 
+    border-radius: 5px;
+}
+
+.container-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(180,180,180,1); 
+}
+
+.container-box::-webkit-scrollbar-thumb:window-inactive {
+	background: rgba(180,180,180,0.4); 
+}			
+
+.container-box legend {
+	font-size: 18px;
+	float: left;
+	width: 160px;
+	margin-right: 50px;
+	margin-bottom: 0px;	
+}
+
+#draw-canvas {
+	float: left;
+	clear: both;
+}
+
+#input-control, #output-control {
+	clear: both;
+	width: 96%;
+	padding: 10px 2%;
+}
+
+#input-control label.clear-line {
+	clear: both;
+	display: block;
+}
+
+.input-option {
+	clear: both;
+	display: block;
+	margin: 2px 0;
+}
+
+button {
+	padding: 5px;
+	background: #666;
+	color: #FFF;
+	border: 1px solid #333;
+	border-radius: 3px;
+	outline: none;
+}
+
+button:hover, .file-label:hover {
+	box-shadow: 1px 1px 2px #333;
+	background: #999;
+}
+
+.file-button {
+	display: none;				
+}
+
+.file-label {
+	float: left;
+	clear: none;
+	padding: 5px;
+	background: #666;
+	color: #FFF;
+	border: 1px solid #333;
+	border-radius: 3px;
+	margin: 5px 10px 10px 0;
+	font-size: 14px;			
+}
+
+#noisy-pixel-size {
+	width: 30px;
+	border: 1px solid #666;
+	padding: 2px 5px;
+	font-family: sans-serif;
+	text-align: right;
+	font-weight: bold;
+	font-size: 16px;				
+}
+
+#input-text-box {
+	border: 1px solid #666;
+	padding: 5px;
+	resize: vertical;
+	font-family: sans-serif;
+	width: 370px;
+}
+
+#input-text-box:focus, #noisy-pixel-size:focus {
+	outline: none;
+	box-shadow: 0px 0px 8px #999;
+}
+
+.switcher {
+	font-size: 12px;
+	padding: 2px 5px;
+	float: left;
+	margin: 0px;
+	background: #ddd;
+	color: #333;
+	border-radius: 0;
+}
+
+.switcher.active {
+	background: #666;
+	color: #fff;
+}
+
+#switch-left {
+	border-radius: 5px 0px 0px 5px;
+}
+
+#switch-right {
+	border-radius: 0px 5px 5px 0px;
+}
+
+#grid-canvas {
+	position: absolute;
+	top: 39px;
+	left: 29px;
+	display: none;
+}
+
+.save-btn {
+	float: right;
+	padding: 2px 10px;
+	background: #66C;
+	text-transform: uppercase;
+	font-size: 12px; 
+	cursor: pointer;
+}
+
+.save-btn:hover {
+	background: #00F;
+}
+
+.timing-display {
+	clear: both;
+	display: block;
+	margin: 2px 0;	
+}
+
+.timing-display input {
+	width: 50px;
+	text-align: right;
+	font-weight: bold;
+	font-size: 16px;
+	padding: 2px 5px;
+}

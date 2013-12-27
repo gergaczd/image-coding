@@ -4,187 +4,14 @@
 		<meta charset="utf-8">
 
 		<script type="text/javascript" src="noisy-image-generator.js"></script>
-		<style>
-			* {margin: 5;}
+		<link rel="stylesheet" href="style.css">
 
-			body {
-				font-family: sans-serif;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                -o-user-select: none;
-                user-select: none; 				
-			}
-
-			canvas {
-				border: 1px solid #333;
-				position: relative;
-			}
-
-			#draw-canvas {
-				cursor: pointer;
-				clear: both;
-			}
-
-			.container-box {
-				border-radius: 3px;
-				border: 1px solid #333;
-				float: left;
-				margin: 0px 5px 20px 5px;
-				width: 400px;
-				padding: 5px 15px;
-				box-shadow: 1px 1px 2px #aaa;
-				height: 625px;
-				overflow-y: auto;
-				overflow-x: hidden;
-			}
-
-			/*scrollbar design */
-			.container-box::-webkit-scrollbar {
-			    width: 8px;
-			}
-			 
-			.container-box::-webkit-scrollbar-track {
-				border-left: 1px solid #CCC;
-			    border-radius: 5px;
-
-			}
-			 
-			.container-box::-webkit-scrollbar-thumb {
-			    background: rgba(180,180,180,0.8); 
-			    border-radius: 5px;
-			}
-
-			.container-box::-webkit-scrollbar-thumb:hover {
-			    background: rgba(180,180,180,1); 
-			}
-
-			.container-box::-webkit-scrollbar-thumb:window-inactive {
-				background: rgba(180,180,180,0.4); 
-			}			
-
-			.container-box legend {
-				font-size: 18px;
-			}
-
-			#draw-canvas {
-				float: left;
-				clear: both;
-			}
-
-			#input-control, #output-control {
-				clear: both;
-				width: 96%;
-				padding: 10px 2%;
-			}
-
-			#input-control label.clear-line {
-				clear: both;
-				display: block;
-			}
-
-			.input-option {
-				clear: both;
-				display: block;
-				margin: 10px 0;
-			}
-			button {
-				padding: 5px;
-				background: #666;
-				color: #FFF;
-				border: 1px solid #333;
-				border-radius: 3px;
-				outline: none;
-			}
-
-			button:hover, .file-label:hover {
-				box-shadow: 1px 1px 2px #333;
-				background: #999;
-			}
-
-			.file-button {
-				display: none;				
-			}
-
-			.file-label {
-				float: left;
-				clear: none;
-				padding: 5px;
-				background: #666;
-				color: #FFF;
-				border: 1px solid #333;
-				border-radius: 3px;
-				margin: 5px 10px 10px 0;
-				font-size: 14px;			
-			}
-
-			#noisy-pixel-size {
-				width: 30px;
-				border: 1px solid #666;
-				padding: 5px;
-				font-family: sans-serif;				
-			}
-
-			#input-text-box {
-				border: 1px solid #666;
-				padding: 5px;
-				resize: vertical;
-				font-family: sans-serif;
-				width: 370px;
-			}
-
-			#input-text-box:focus, #noisy-pixel-size:focus {
-				outline: none;
-				box-shadow: 0px 0px 8px #999;
-			}
-
-			#generated-box legend, #input-box legend {
-				float: left;
-				width: 200px;
-				margin-right: 50px;
-				margin-bottom: 0px;
-			}
-
-			.switcher {
-				font-size: 12px;
-				padding: 2px 5px;
-				float: left;
-				margin: 0px;
-				background: #ddd;
-				color: #333;
-				border-radius: 0;
-			}
-
-			.switcher.active {
-				background: #666;
-				color: #fff;
-			}
-
-			#switch-left, #draw-input {
-				border-radius: 5px 0px 0px 5px;
-			}
-
-			#switch-right, #image-input {
-				border-radius: 0px 5px 5px 0px;
-			}
-
-			#grid-canvas {
-				position: absolute;
-				top: 36px;
-				left: 29px;
-				display: none;
-			}
-			
-
-		</style>
 	</head>
 	<body>
 		<div id="input-box" class="container-box">
 			<legend>Input</legend>
-			<button id="draw-input" class="switcher">Draw</button>
-			<button id="text-input" class="switcher">Text</button>
-			<button id="image-input" class="switcher">Image</button>
 
+			<button id="input-save" class="save-btn">Save</button>
 			<canvas id="draw-canvas" width="400" height="300"></canvas>
 			<canvas id="grid-canvas" width="400" height="300"></canvas>
 
@@ -192,11 +19,12 @@
 				<div class="input-option">
 					<label for="input-text-box" class="clear-line">Input text:</label>
 					<textarea name="" id="input-text-box" cols="45" rows="3"></textarea>
+					<button id="load-text-btn">Load text</button>
 				</div>
 
 				<div class="input-option">
 					<label for="noisy-pixel-size">Noisy pixel size:</label>
-					<input type="text" id="noisy-pixel-size">
+					<input type="text" id="noisy-pixel-size" value="4">
 				</div>
 
 				<div class="input-option">
@@ -205,6 +33,7 @@
 
 					<label for="load-key-box" class="file-label">Load existing key</label>
 					<input class="file-button" type="file" id="load-key-box">
+
 				</div>
 				<br><br>
 				<hr>
@@ -221,17 +50,30 @@
 			<legend>Key picture</legend>
 				<button id="switch-left" class="switcher">Overlap</button>
 				<button id="switch-right" class="switcher active">Separate</button>
+				<button id="key-save" class="save-btn">Save</button>
+				
 			<canvas id="key-canvas" width="400" height="300"></canvas>
 			<legend>Noisy picture</legend>
+			<button id="noisy-save" class="save-btn">Save</button>
 			<canvas id="noisy-canvas" width="400" height="300"></canvas>
 		</div>
 
 		<div class="container-box" id="output-box">
 			<legend>Output</legend>
+			<button id="output-save" class="save-btn">Save</button>
 			<canvas id="solved-canvas" width="400" height="300"></canvas>
 
 			<div id="output-control">
 				<button id="decode-button">Decode image</button>
+			</div>
+
+			<div class="timing-display">
+				<label for="enc-time">Encoding time (ms):</label>
+				<input type="text" id="enc-time" disabled>
+			</div>
+			<div class="timing-display">
+				<label for="dec-time">Decoding time (ms):</label>
+				<input type="text" id="dec-time" disabled>
 			</div>
 		</div>
 	</body>

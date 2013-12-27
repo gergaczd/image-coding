@@ -85,6 +85,31 @@ SA.PIXEL_SIZE = 4;
 		}
 	};
 
+	p.loadText = function(text) {
+		this.clear();
+		this.context.fillStyle = "#000";
+		this.context.font = "22pt Arial Black";
+		this.context.textAlign = "left";
+		this.context.textBaseline = "top";
+
+		var parsedText = text.split(" "),
+			textArray = [],
+			j = 0;
+
+		textArray[0] = "";
+		for (var i = 0; i < parsedText.length; i++) {
+			if(this.context.measureText(textArray[j] + parsedText[i] + " ").width >= this.mycanvas.width) {
+				j++;
+				textArray[j] = "";
+			}
+			textArray[j] += parsedText[i] + " ";
+		}
+
+		for (var i = 0; i < textArray.length; i++) {
+			this.context.fillText(textArray[i], 0, i*24);
+		}
+	};
+
 	p.clear = function() {
 		this.context.clearRect(0,0, this.mycanvas.width, this.mycanvas.height);
 
@@ -108,7 +133,6 @@ function elementPosition(element) {
     return elementPos;
 };
 
-
 (function() {
 	"use strict";
 
@@ -118,8 +142,6 @@ function elementPosition(element) {
 
 		this.noisyContext = undefined;
 		this.keyContext = undefined;
-		this.solutionCanvas = undefined;
-		this.solutionCanvas2 = undefined;
 
 		this._pixelSize = 1;
 
@@ -128,13 +150,12 @@ function elementPosition(element) {
 
 	var p = SA.ImageEncoding.prototype;
 
-	p.set = function(canvas, noisy, key, solution) {
+	p.set = function(canvas, noisy, key) {
 		this.inputCanvas = document.getElementById(canvas);
 		this.inputContext = this.inputCanvas.getContext("2d");
 
 		this.noisyContext = document.getElementById(noisy).getContext("2d");
 		this.keyContext = document.getElementById(key).getContext("2d");
-		this.solutionCanvas = document.getElementById(solution).getContext("2d");
 
 		this._pixelSize = SA.PIXEL_SIZE || 1;
 	};
@@ -148,7 +169,6 @@ function elementPosition(element) {
 
 		this.noisyContext.clearRect(0,0, width, height);
 		this.keyContext.clearRect(0,0, width, height);
-		this.solutionCanvas.clearRect(0,0, width, height);
 
 		var pixelData = this.inputContext.getImageData(0,0,width,height).data;
 	
@@ -160,25 +180,22 @@ function elementPosition(element) {
 			throw new Error("Incorrect size!");
 		}
 
-		var lengthX = width/this._pixelSize,
-			lengthY = height/this._pixelSize,
-			length = pixelData.length,
+		var lengthX = width/this._pixelSize, //how many pixel per row
+			lengthY = height/this._pixelSize, //how many pixel per col
 			row = width*4;
 
 
-		var mtx = [];
-		for (var y = 0; y < lengthY; y++) {
-			mtx[y] = [];
-			for (var x = 0; x < lengthX; x++) {
-				var startPos = y*row + this._pixelSize * x * 4,
+		for (var y = 0; y < lengthY; y++) {//cols
+			for (var x = 0; x < lengthX; x++) {//rows
+				var startPos = y*this._pixelSize*row + this._pixelSize * x * 4,
 					black = 0,
 					white = 0,
 					currPos;
 
 				for (var i = 0; i < this._pixelSize; i++) {
-					currPos = startPos + i*row; //something is wrong...
+					currPos = startPos + i*row;
 					for (var j = 0; j < this._pixelSize; j++) {
-						if(pixelData[currPos+3] === 255 && pixelData[currPos] === 0 && pixelData[currPos+1] === 0 && pixelData[currPos+2] === 0) {
+						if(pixelData[currPos+3] !== 0 && pixelData[currPos] === 0 && pixelData[currPos+1] === 0 && pixelData[currPos+2] === 0) {
 							black++;
 						} else {
 							white++;
@@ -190,14 +207,12 @@ function elementPosition(element) {
 				var random = Math.floor(Math.random()*100) % 2;
 
 				if(black > white) {
-					mtx[y][x] = 1;
 					if(random === 0) {
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					} else {
 						this.keyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					}
 				} else {
-					mtx[y][x] = 0;
 					if(random === 0) {
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 						this.keyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
@@ -206,47 +221,82 @@ function elementPosition(element) {
 
 			}
 		}
-		console.log(mtx)
+		var end = (new Date()).getTime();
+		
+		console.log(end);
+		console.log("Diff: " + (end-start));
+
+		SA.encTimeLog.value = end-start;
+		this.isProcess = false;
+	};
+
+	//TODO: generalize
+	p.processWithKey = function() {
+		this.isProcess = true;
+		var start = (new Date()).getTime();
+		console.log(start);
+
+		var width = this.inputCanvas.width,
+			height = this.inputCanvas.height;
+
+
+		var lengthX = width/this._pixelSize, //how many pixel per row
+			lengthY = height/this._pixelSize, //how many pixel per col
+			row = width*4;
+
+
+		this.noisyContext.clearRect(0,0, width, height);
+
+		var inputData = this.inputContext.getImageData(0,0,width,height).data,
+			keyData = this.keyContext.getImageData(0,0,width,height).data;
+
+		if(width%this._pixelSize !== 0 && height%this._pixelSize !== 0) {
+			throw new Error("The given pixel size is incorrect");
+		}
+
+		if(width * height * 4 !== inputData.length) {
+			throw new Error("Incorrect size!");
+		}
+
+		for (var y = 0; y < lengthY; y++) {//cols
+			for (var x = 0; x < lengthX; x++) {//rows
+				var startPos = y*this._pixelSize*row + this._pixelSize * x * 4,
+					black = 0,
+					white = 0,
+					currPos;
+
+				for (var i = 0; i < this._pixelSize; i++) {
+					currPos = startPos + i*row;
+					for (var j = 0; j < this._pixelSize; j++) {
+						if(inputData[currPos+3] !== 0 && inputData[currPos] === 0 && inputData[currPos+1] === 0 && inputData[currPos+2] === 0) {
+							black++;
+						} else {
+							white++;
+						}
+						currPos += 4;
+					}
+				}
+
+				if(black > white) {
+					if(keyData[startPos+3] !== 255) {
+						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+					}
+				} else {
+					if(keyData[startPos+3] !== 0 && keyData[startPos] === 0 && keyData[startPos+1] === 0 && keyData[startPos+2] === 0) {
+						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
+					}
+				}
+			}
+		}
+
 
 		var end = (new Date()).getTime();
 		
 		console.log(end);
 		console.log("Diff: " + (end-start));
-		this.isProcess = false;
-	};
 
-	p.makeNoisyBasedOnKey = function(canvas, noisy, key, output) {
-
-		this.inputContext = document.getElementById(canvas).getContext("2d");
-		this.solutionCanvas2 = document.getElementById(output).getContext("2d");
-		this.noisyContext = document.getElementById(noisy).getContext("2d");
-		this.keyContext = document.getElementById(key).getContext("2d");
-
-		var width = this.inputContext.canvas.width,
-			height = this.inputContext.canvas.height;
-
-		this.solutionCanvas2.clearRect(0, 0, width, height);
-		this.noisyContext.clearRect(0, 0, width, height);
-
-		var inputData = this.inputContext.getImageData(0,0,width,height).data,
-			keyData = this.keyContext.getImageData(0,0,width,height).data;
-
-		for (var i = 0, length = inputData.length; i < length; i+=4) {
-			var pixNum = i/4;
-
-			var x = pixNum % width,
-				y = Math.floor(pixNum / width);
-
-			if(inputData[i+3] === 255) {//it is black
-				if(keyData[i+3] !== 255) {
-					this.noisyContext.fillRect(x,y,1,1);
-				}
-			} else {
-				if(keyData[i+3] === 255) {
-					this.noisyContext.fillRect(x,y,1,1);
-				}
-			}
-		}
+		SA.encTimeLog.value = end-start;
+		this.isProcess = false;		
 	};
 
 	p.clear = function(canvas) {
@@ -316,6 +366,7 @@ function elementPosition(element) {
 		
 		console.log(end);
 		console.log("Diff: " + (end-start));
+		SA.decTimeLog.value = end-start;
 	};
 }());
 
@@ -335,12 +386,29 @@ window.onload = function() {
 		switchLeft = document.getElementById("switch-left"),
 		switchRight = document.getElementById("switch-right"),
 		decodeBtn = document.getElementById("decode-button"),
-		showGridBtn = document.getElementById("show-grid-btn");
+		showGridBtn = document.getElementById("show-grid-btn"),
 
+		loadText = document.getElementById("load-text-btn"),
+
+		inputSave = document.getElementById("input-save"),
+		keySave = document.getElementById("key-save"),
+		noisySave = document.getElementById("noisy-save"),
+		outputSave = document.getElementById("output-save"),
+
+		inputImg = document.getElementById("input-image-box"),
+		keyImg = document.getElementById("load-key-box");
+
+	SA.decTimeLog = document.getElementById("dec-time");
+	SA.encTimeLog = document.getElementById("enc-time");
+
+	pxSizeInput.addEventListener("change", function() {
+		if(!isNaN(parseInt(this.value))) {
+			SA.PIXEL_SIZE = parseInt(this.value);
+		}
+	}, false);
 
 	encodeBtn.addEventListener("click", function() {
-		SA.PIXEL_SIZE = parseInt(pxSizeInput.value);
-		encoding.set("draw-canvas", "noisy-canvas", "key-canvas", "solved-canvas");
+		encoding.set("draw-canvas", "noisy-canvas", "key-canvas");
 		encoding.process();
 	}, false);
 
@@ -349,7 +417,8 @@ window.onload = function() {
 	}, false);
 
 	generateBtn.addEventListener("click", function(){
-		encoding.makeNoisyBasedOnKey("draw-canvas", "noisy-canvas", "key-canvas", "solved-canvas");
+		encoding.set("draw-canvas", "noisy-canvas", "key-canvas");
+		encoding.processWithKey();
 	}, false);
 
 	switchLeft.addEventListener("click", function() {
@@ -402,6 +471,7 @@ window.onload = function() {
 
 			gridContext.lineWidth = 1;
 			SA.PIXEL_SIZE = SA.PIXEL_SIZE || 1;
+			console.log(SA.PIXEL_SIZE)
 			for (var i = 0; i < width; i += SA.PIXEL_SIZE) {
 				gridContext.beginPath();
 				gridContext.moveTo(i, 0);
@@ -420,5 +490,70 @@ window.onload = function() {
 				gridContext.closePath();
 			}		
 		}
+	}, false);
+
+
+	//Saving images
+	inputSave.addEventListener("click", function() {
+		var dataURL = document.getElementById("draw-canvas").toDataURL();
+		window.open(dataURL);
+	},false);
+
+	keySave.addEventListener("click", function() {
+		var dataURL = document.getElementById("key-canvas").toDataURL();
+		window.open(dataURL);
+	}, false);
+
+	noisySave.addEventListener("click", function() {
+		var dataURL = document.getElementById("noisy-canvas").toDataURL();
+		window.open(dataURL);
+	}, false);
+
+	outputSave.addEventListener("click", function() {
+		var dataURL = document.getElementById("solved-canvas").toDataURL();
+		window.open(dataURL);
+	}, false);
+
+	inputImg.addEventListener("change", function() {
+		if(this.files.length !== 0) {		
+			var canvas = document.getElementById("draw-canvas"),
+				context = canvas.getContext("2d"),
+				img = new Image();
+
+			context.clearRect(0,0,canvas.width, canvas.height);
+
+			img.onload = function(e) {
+				context.drawImage(this, 0, 0);
+				//window.URL.revokeObjectURL(this.src);
+			};
+			img.src = window.URL.createObjectURL(this.files[0]);
+
+			this.files = [];
+			this.value = null;
+		}
+	}, false);
+
+	keyImg.addEventListener("change", function() {
+		if(this.files.length !== 0) {		
+			var canvas = document.getElementById("key-canvas"),
+				context = canvas.getContext("2d"),
+				img = new Image();
+
+			context.clearRect(0,0,canvas.width, canvas.height);
+
+			img.onload = function(e) {
+				context.drawImage(this, 0, 0);
+				//window.URL.revokeObjectURL(this.src);
+			};
+			img.src = window.URL.createObjectURL(this.files[0]);
+
+			this.files = [];
+			this.value = null;
+		}
+	}, false);
+
+	loadText.addEventListener("click", function() {
+		var input = document.getElementById("input-text-box");
+		drawer.loadText(input.value);
 	}, false);
 };
