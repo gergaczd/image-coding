@@ -1,6 +1,6 @@
 var SA = SA || {};
 
-SA.PIXEL_SIZE = 4;
+SA.PIXEL_SIZE = 1;
 
 (function(){
 	"use strict";
@@ -162,17 +162,21 @@ function elementPosition(element) {
 
 	p.process = function() {
 		this.isProcess = true;
-		var start = (new Date()).getTime();
-		console.log(start);
-		var width = this.inputCanvas.width,
+
+		var start = (new Date()).getTime(),
+			end,
+			pixelData,
+			numOfB = 0,
+
+			width = this.inputCanvas.width,
 			height = this.inputCanvas.height;
 
 		this.noisyContext.clearRect(0,0, width, height);
 		this.keyContext.clearRect(0,0, width, height);
 
-		var pixelData = this.inputContext.getImageData(0,0,width,height).data;
+		pixelData = this.inputContext.getImageData(0,0,width,height).data;
 	
-		if(width%this._pixelSize !== 0 && height%this._pixelSize !== 0) {
+		if(width%this._pixelSize !== 0 || height%this._pixelSize !== 0) {
 			throw new Error("The given pixel size is incorrect");
 		}
 
@@ -207,6 +211,7 @@ function elementPosition(element) {
 				var random = Math.floor(Math.random()*100) % 2;
 
 				if(black > white) {
+					numOfB += (this._pixelSize*this._pixelSize);
 					if(random === 0) {
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					} else {
@@ -214,6 +219,7 @@ function elementPosition(element) {
 					}
 				} else {
 					if(random === 0) {
+						numOfB += (this._pixelSize*this._pixelSize);
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 						this.keyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					}
@@ -221,24 +227,22 @@ function elementPosition(element) {
 
 			}
 		}
-		var end = (new Date()).getTime();
 		
-		console.log(end);
-		console.log("Diff: " + (end-start));
+		end = (new Date()).getTime();
 
 		SA.encTimeLog.value = end-start;
+		SA.numOfBlackIn.value = numOfB;
 		this.isProcess = false;
 	};
 
-	//TODO: generalize
 	p.processWithKey = function() {
 		this.isProcess = true;
-		var start = (new Date()).getTime();
-		console.log(start);
+		var start = (new Date()).getTime(),
+			end,
+			numOfB = 0,
 
-		var width = this.inputCanvas.width,
+			width = this.inputCanvas.width,
 			height = this.inputCanvas.height;
-
 
 		var lengthX = width/this._pixelSize, //how many pixel per row
 			lengthY = height/this._pixelSize, //how many pixel per col
@@ -250,7 +254,7 @@ function elementPosition(element) {
 		var inputData = this.inputContext.getImageData(0,0,width,height).data,
 			keyData = this.keyContext.getImageData(0,0,width,height).data;
 
-		if(width%this._pixelSize !== 0 && height%this._pixelSize !== 0) {
+		if(width%this._pixelSize !== 0 || height%this._pixelSize !== 0) {
 			throw new Error("The given pixel size is incorrect");
 		}
 
@@ -279,23 +283,22 @@ function elementPosition(element) {
 
 				if(black > white) {
 					if(keyData[startPos+3] !== 255) {
+						numOfB += (this._pixelSize*this._pixelSize);
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					}
 				} else {
 					if(keyData[startPos+3] !== 0 && keyData[startPos] === 0 && keyData[startPos+1] === 0 && keyData[startPos+2] === 0) {
+						numOfB += (this._pixelSize*this._pixelSize);
 						this.noisyContext.fillRect(x*this._pixelSize,y*this._pixelSize,this._pixelSize,this._pixelSize);
 					}
 				}
 			}
 		}
 
-
-		var end = (new Date()).getTime();
+		end = (new Date()).getTime();
 		
-		console.log(end);
-		console.log("Diff: " + (end-start));
-
 		SA.encTimeLog.value = end-start;
+		SA.numOfBlackIn.value = numOfB;
 		this.isProcess = false;		
 	};
 
@@ -335,9 +338,11 @@ function elementPosition(element) {
 	};
 
 	p.process = function() {
-		var start = (new Date()).getTime();
-		console.log(start);
-		var width = this.outputCanvas.width,
+		var start = (new Date()).getTime(),
+			end,
+			numOfB = 0,
+
+			width = this.outputCanvas.width,
 			height = this.outputCanvas.height;
 
 		this.outputContext.clearRect(0,0, width, height);
@@ -357,16 +362,15 @@ function elementPosition(element) {
 
 			if((keyPixels[i+3] === 255 && noisyPixels[i+3] === 0) ||
 				(keyPixels[i+3] === 0 && noisyPixels[i+3] === 255)) {
-
+				numOfB++;
 				this.outputContext.fillRect(x,y,1,1);
 			}
 		}
 
-		var end = (new Date()).getTime();
+		end = (new Date()).getTime();
 		
-		console.log(end);
-		console.log("Diff: " + (end-start));
 		SA.decTimeLog.value = end-start;
+		SA.numOfBlackOut.value = numOfB;
 	};
 }());
 
@@ -400,6 +404,8 @@ window.onload = function() {
 
 	SA.decTimeLog = document.getElementById("dec-time");
 	SA.encTimeLog = document.getElementById("enc-time");
+	SA.numOfBlackIn = document.getElementById("num-of-black-in");
+	SA.numOfBlackOut = document.getElementById("num-of-black-out");
 
 	pxSizeInput.addEventListener("change", function() {
 		if(!isNaN(parseInt(this.value))) {
@@ -524,7 +530,6 @@ window.onload = function() {
 
 			img.onload = function(e) {
 				context.drawImage(this, 0, 0);
-				//window.URL.revokeObjectURL(this.src);
 			};
 			img.src = window.URL.createObjectURL(this.files[0]);
 
@@ -543,7 +548,6 @@ window.onload = function() {
 
 			img.onload = function(e) {
 				context.drawImage(this, 0, 0);
-				//window.URL.revokeObjectURL(this.src);
 			};
 			img.src = window.URL.createObjectURL(this.files[0]);
 
